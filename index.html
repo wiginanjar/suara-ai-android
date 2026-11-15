@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SuaraAI Studio</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: #090d16; color: #f1f5f9; padding: 16px; padding-bottom: 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px solid #1e293b; margin-bottom: 16px; }
+        .header h1 { font-size: 20px; font-weight: 700; color: #fff; }
+        .badge { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; padding: 4px 10px; border-radius: 999px; font-weight: 600; }
+        .card { background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 14px; margin-bottom: 14px; }
+        label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; font-weight: 700; margin-bottom: 8px; }
+        select, textarea { width: 100%; background: #1e293b; border: 1px solid #334155; color: #fff; border-radius: 12px; padding: 12px; font-size: 15px; outline: none; }
+        select:focus, textarea:focus { border-color: #6366f1; }
+        .gender-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .gender-btn { background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 12px; border-radius: 12px; text-align: center; font-weight: 600; font-size: 14px; cursor: pointer; }
+        .gender-btn.active { background: #4f46e5; border-color: #6366f1; color: #fff; }
+        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        textarea { min-height: 170px; resize: vertical; line-height: 1.5; }
+        .counter-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .counter-text { font-size: 12px; color: #94a3b8; }
+        .btn-primary { width: 100%; background: linear-gradient(135deg, #4f46e5, #6366f1); color: #fff; border: none; border-radius: 14px; padding: 15px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 20px rgba(79, 70, 229, 0.35); }
+        .btn-primary:disabled { opacity: 0.6; }
+        .output-box { display: none; margin-top: 14px; }
+        .output-box.show { display: block; }
+        .play-bar { display: flex; gap: 10px; margin-bottom: 12px; }
+        .btn-play { flex: 1; background: #1e293b; border: 1px solid #334155; color: #fff; padding: 12px; border-radius: 12px; font-weight: 600; font-size: 14px; }
+        .dl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-wav { background: #0284c7; color: #fff; border: none; padding: 12px; border-radius: 12px; font-weight: 600; font-size: 14px; }
+        .btn-mp3 { background: #059669; color: #fff; border: none; padding: 12px; border-radius: 12px; font-weight: 600; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>SuaraAI Studio</h1>
+            <div style="font-size:12px;color:#94a3b8;">Offline Android Voiceover</div>
+        </div>
+        <span class="badge">Unlimited Karakter</span>
+    </div>
+
+    <div class="card">
+        <label>Karakter Suara</label>
+        <div class="gender-grid">
+            <div id="btnPria" class="gender-btn active" onclick="setGender('pria')">👨 Pria</div>
+            <div id="btnWanita" class="gender-btn" onclick="setGender('wanita')">👩 Wanita</div>
+        </div>
+    </div>
+
+    <div class="card row-2">
+        <div>
+            <label for="lang">Bahasa</label>
+            <select id="lang">
+                <option value="id-ID" selected>🇮🇩 Indonesia</option>
+                <option value="en-US">🇺🇸 English</option>
+                <option value="ms-MY">🇲🇾 Melayu</option>
+            </select>
+        </div>
+        <div>
+            <label for="emotion">Vibe / Emosi</label>
+            <select id="emotion">
+                <option value="normal">😐 Normal</option>
+                <option value="ceria">😄 Ceria</option>
+                <option value="antusias">🔥 Antusias</option>
+                <option value="marah">😡 Marah</option>
+                <option value="bingung">🤔 Bingung</option>
+                <option value="sedih">😢 Sedih</option>
+                <option value="puitis">🌙 Puitis</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="counter-row">
+            <label style="margin:0;">Naskah Narasi</label>
+            <span id="counter" class="counter-text">0 karakter • 0 kata</span>
+        </div>
+        <textarea id="narration" placeholder="Ketik atau tempel naskah panjang tanpa batas karakter di sini..."></textarea>
+    </div>
+
+    <button id="genBtn" class="btn-primary" onclick="generateVoice()">🔊 Hasilkan Suara</button>
+
+    <div id="outputBox" class="card output-box">
+        <div style="font-size:13px;color:#34d399;font-weight:600;margin-bottom:10px;">✓ Audio siap diputar & diunduh</div>
+        <div class="play-bar">
+            <button class="btn-play" onclick="AndroidTTS.playAudio()">▶️ Putar Audio</button>
+            <button class="btn-play" onclick="AndroidTTS.stopAudio()">⏹️ Stop</button>
+        </div>
+        <div class="dl-grid">
+            <button class="btn-wav" onclick="AndroidTTS.downloadFile('wav')">⬇️ Unduh .WAV</button>
+            <button class="btn-mp3" onclick="AndroidTTS.downloadFile('mp3')">⬇️ Unduh .MP3</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedGender = 'pria';
+        const narration = document.getElementById('narration');
+        const counter = document.getElementById('counter');
+
+        narration.addEventListener('input', () => {
+            const val = narration.value;
+            const words = val.trim() === '' ? 0 : val.trim().split(/\s+/).length;
+            counter.textContent = `${val.length.toLocaleString('id-ID')} karakter • ${words.toLocaleString('id-ID')} kata`;
+        });
+
+        function setGender(g) {
+            selectedGender = g;
+            document.getElementById('btnPria').classList.toggle('active', g === 'pria');
+            document.getElementById('btnWanita').classList.toggle('active', g === 'wanita');
+        }
+
+        function generateVoice() {
+            const text = narration.value.trim();
+            if (!text) {
+                alert('Masukkan teks narasi terlebih dahulu.');
+                return;
+            }
+            const btn = document.getElementById('genBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Memproses Audio...';
+
+            const lang = document.getElementById('lang').value;
+            const emotion = document.getElementById('emotion').value;
+
+            if (window.AndroidTTS) {
+                AndroidTTS.synthesize(text, lang, selectedGender, emotion);
+            } else {
+                alert('Jalankan di aplikasi Android untuk mesin TTS native.');
+                btn.disabled = false;
+                btn.textContent = '🔊 Hasilkan Suara';
+            }
+        }
+
+        function onAudioReady() {
+            const btn = document.getElementById('genBtn');
+            btn.disabled = false;
+            btn.textContent = '🔊 Hasilkan Suara';
+            document.getElementById('outputBox').classList.add('show');
+            AndroidTTS.playAudio();
+        }
+
+        function onError(msg) {
+            const btn = document.getElementById('genBtn');
+            btn.disabled = false;
+            btn.textContent = '🔊 Hasilkan Suara';
+            alert(msg);
+        }
+
+        function onPlaybackEnded() {}
+    </script>
+</body>
+</html>
